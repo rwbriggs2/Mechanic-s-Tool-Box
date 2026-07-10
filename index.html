@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mechanic's Tool Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2C2C2A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tool Tracker">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #EDEBE4;
+    display: flex;
+    justify-content: center;
+    padding: 24px 12px;
+    min-height: 100vh;
+  }
+  #outer { width: 100%; max-width: 380px; position: relative; }
+  body { --btn-bg: #E8E6DC; --btn-border: #9c9a90; --btn-text: #2C2C2A; --btn-hover: #DCD9CC; }
+  body.dark { --btn-bg: #34342f; --btn-border: #59584f; --btn-text: #F1EFE8; --btn-hover: #40403a; }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 1px solid var(--btn-border);
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    font-weight: 600;
+  }
+  button:hover { background: var(--btn-hover); }
+  body.dark #settings-btn { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.14); }
+  body.dark #settings-btn:hover { background: rgba(255,255,255,0.12); }
+  input {
+    font-family: inherit;
+    border-radius: 8px;
+    border: 0.5px solid #B4B2A9;
+    padding: 5px 8px;
+    background: #ffffff;
+  }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: #cfcdc4; border-radius: 3px; }
+  .highlight { animation: flash 1.1s ease; }
+  @keyframes flash {
+    0% { background: rgba(226,75,74,0.28); }
+    100% { background: transparent; }
+  }
+</style>
+</head>
+<body>
+
+<div id="outer">
+  <div id="card" style="border-radius: 16px; border: 0.5px solid #e3e1d9; overflow: hidden;">
+    <div id="header" style="padding: 12px 14px; border-bottom: 0.5px solid #e3e1d9; position: relative;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <span id="title" style="font-size: 16px; font-weight: 600;">Mechanic's Tool Tracker</span>
+        <button id="settings-btn" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5F5E5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="position: relative; flex: 1; min-width: 0;">
+          <i class="ti ti-search" style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #8a8880;"></i>
+          <input id="search-input" placeholder="search tools" style="width: 100%; padding: 5px 8px 5px 28px; font-size: 12px;" />
+        </div>
+        <button id="add-root" style="font-size: 12px; padding: 4px 10px; white-space: nowrap; flex-shrink: 0;"><i class="ti ti-plus" style="font-size:13px; vertical-align:-2px; margin-right:4px;"></i>category</button>
+      </div>
+
+      <div id="settings-panel" style="display:none; position: absolute; top: 100%; margin-top: 8px; right: 14px; width: 200px; background: #ffffff; border: 0.5px solid #e3e1d9; border-radius: 12px; padding: 12px 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 5;">
+        <div style="font-size: 13px; font-weight: 600; margin-bottom: 10px;">Settings</div>
+        <div style="margin-bottom: 12px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
+            <label for="font-slider" style="font-size: 12px; color: #5F5E5A;">Font size</label>
+            <span id="font-val" style="font-size: 12px; font-weight: 600;">13px</span>
+          </div>
+          <input id="font-slider" type="range" min="12" max="18" step="1" value="13" style="width: 100%; padding: 0;" />
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <span style="font-size: 12px; color: #5F5E5A;">Dark mode</span>
+          <button id="dark-toggle" style="width: 40px; height: 22px; border-radius: 11px; padding: 0; background: #e3e1d9; position: relative;">
+            <span id="dark-knob" style="position:absolute; top:1px; left:1px; width:18px; height:18px; border-radius:50%; background: #ffffff; border: 0.5px solid #B4B2A9; transition: left 0.15s;"></span>
+          </button>
+        </div>
+        <div id="save-status" style="font-size: 11px; color: #8a8880; margin-top: 10px;"></div>
+        <div style="border-top: 0.5px solid #e3e1d9; margin-top: 10px; padding-top: 10px;">
+          <button id="restore-defaults-btn" style="font-size: 11px; padding: 4px 10px; width: 100%;">Restore defaults</button>
+          <div id="restore-confirm" style="display:none; margin-top: 8px; padding: 8px; border-radius: 8px; background: #FCEBEB;">
+            <div style="font-size: 11px; color: #A32D2D; margin-bottom: 6px;">erase all saved categories and restore the defaults?</div>
+            <div style="display:flex; gap: 6px;">
+              <button id="restore-confirm-yes" style="font-size: 11px; padding: 3px 8px; color:#A32D2D; border-color:#E24B4A;">restore</button>
+              <button id="restore-confirm-no" style="font-size: 11px; padding: 3px 8px;">cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tree" style="height: 380px; overflow-y: auto; padding: 8px 10px;"></div>
+
+    <div id="quickref-section" style="border-top: 0.5px solid #e3e1d9; padding: 10px 14px 54px; position: relative;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <span style="font-size: 12px; color: #8a8880;">checked out (tap to locate)</span>
+        <span id="out-legend" style="font-size: 11px; color: #A32D2D;"><i class="ti ti-circle-filled" style="font-size:8px; vertical-align:1px; margin-right:3px;"></i>out</span>
+      </div>
+      <div id="quickref" style="display: flex; flex-direction: column; gap: 2px; max-height: 120px; overflow-y: auto;"></div>
+
+      <button id="reset-all" style="position: absolute; bottom: 10px; left: 12px; font-size: 11px; padding: 4px 10px; white-space: nowrap;"><i class="ti ti-rotate" style="font-size:13px; vertical-align:-2px; margin-right:4px;"></i>reset</button>
+      <button id="collapse-all" style="position: absolute; bottom: 10px; right: 12px; font-size: 11px; padding: 4px 10px; white-space: nowrap;"><i class="ti ti-arrows-minimize" style="font-size:13px; vertical-align:-2px; margin-right:4px;"></i>collapse all</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let uid = 0;
+const nid = () => "n" + (uid++);
+
+const defaultData = [
+  { id: nid(), name: "Hand tools", _open: false, children: [
+    { id: nid(), name: "Wrenches", _open: false, children: [] },
+    { id: nid(), name: "Ratchets", _open: false, children: [] },
+    { id: nid(), name: "Sockets", _open: false, children: [] },
+    { id: nid(), name: "Screwdrivers", _open: false, children: [] },
+    { id: nid(), name: "Pliers", _open: false, children: [] },
+    { id: nid(), name: "Hammer/Mallets", _open: false, children: [] }
+  ]},
+  { id: nid(), name: "Power tools", _open: false, children: [] },
+  { id: nid(), name: "Inspection tools", _open: false, children: [] },
+  { id: nid(), name: "Specialty tools", _open: false, children: [] },
+  { id: nid(), name: "Safety Equipment", _open: false, children: [] }
+];
+
+let data = defaultData;
+let openMenu = null;
+let renameId = null;
+let addFormId = null;
+let deleteConfirmId = null;
+let reorderId = null;
+let fontSize = 13;
+let darkMode = false;
+let searchQuery = "";
+let saveTimer = null;
+
+const lightTheme = { page: "#EDEBE4", card: "#ffffff", header: "#ffffff", body: "#ffffff", border: "#e3e1d9", text: "#2C2C2A", sub: "#5F5E5A", inputBg: "#ffffff" };
+const darkTheme  = { page: "#17171A", card: "#232320", header: "#232320", body: "#232320", border: "#3d3d39", text: "#F1EFE8", sub: "#B4B2A9", inputBg: "#2c2c29" };
+
+function findParentArray(list, id) {
+  for (const node of list) {
+    if (node.id === id) return list;
+    if (node.children) { const found = findParentArray(node.children, id); if (found) return found; }
+  }
+  return null;
+}
+function findPathTo(list, id, path) {
+  for (const node of list) {
+    path.push(node);
+    if (node.id === id) return path.slice();
+    if (node.children) {
+      const found = findPathTo(node.children, id, path);
+      if (found) return found;
+    }
+    path.pop();
+  }
+  return null;
+}
+function countAll(node) { let n = 1; if (node.children) node.children.forEach(c => n += countAll(c)); return n; }
+function subtreeMatches(node, query) {
+  if (node.name.toLowerCase().includes(query)) return true;
+  if (node.children) return node.children.some(c => subtreeMatches(c, query));
+  return false;
+}
+function leaves(node, acc) { if (node.children) node.children.forEach(c => leaves(c, acc)); else acc.push(node); return acc; }
+function iconBtn(icon) { const theme = darkMode ? darkTheme : lightTheme; return '<i class="ti ' + icon + '" style="font-size:14px;color:' + theme.sub + ';"></i>'; }
+
+function mkBtn(label, icon, fn, variant) {
+  const b = document.createElement("button");
+  b.innerHTML = (icon ? iconBtn(icon) + '<span style="margin-left:4px;">' : "<span>") + label + "</span>";
+  b.style.cssText = "font-size:11px;padding:3px 8px;";
+  if (variant === "danger") b.style.cssText += "color:#A32D2D;border-color:#E24B4A;";
+  b.onclick = (e) => { e.stopPropagation(); fn(); };
+  return b;
+}
+
+function renderNode(node, depth, query) {
+  const theme = darkMode ? darkTheme : lightTheme;
+  const wrap = document.createElement("div");
+  wrap.id = "row-" + node.id;
+  wrap.style.marginLeft = (depth * 12) + "px";
+  wrap.style.borderRadius = "6px";
+
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:6px 4px;border-radius:6px;gap:6px;";
+
+  const left = document.createElement("div");
+  left.style.cssText = "display:flex;align-items:center;flex:1;min-width:0;";
+
+  if (renameId === node.id) {
+    const input = document.createElement("input");
+    input.value = node.name;
+    input.style.cssText = "font-size:" + fontSize + "px;flex:1;min-width:0;background:" + theme.inputBg + ";color:" + theme.text + ";";
+    input.onclick = (e) => e.stopPropagation();
+    input.onkeydown = (e) => {
+      if (e.key === "Enter") { if (input.value.trim()) node.name = input.value.trim(); renameId = null; renderAll(); scheduleSave(); }
+      if (e.key === "Escape") { renameId = null; renderAll(); }
+    };
+    input.onblur = () => { if (input.value.trim()) node.name = input.value.trim(); renameId = null; renderAll(); scheduleSave(); };
+    left.appendChild(input);
+    setTimeout(() => { input.focus(); input.select(); }, 0);
+  } else if (node.children) {
+    left.style.cursor = "pointer";
+    left.innerHTML = '<svg class="chev" viewBox="0 0 24 24" width="' + (fontSize+3) + '" height="' + (fontSize+3) + '" fill="none" stroke="' + theme.sub + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;transition:transform 0.15s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"></polyline></svg><span style="font-size:' + (fontSize+1) + 'px;font-weight:600;color:' + theme.text + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + node.name + "</span>";
+    left.onclick = () => { node._open = node._open === false ? true : !node._open; renderAll(); scheduleSave(); };
+  } else {
+    const isSearchHit = query && node.name.toLowerCase().includes(query);
+    left.innerHTML = '<span style="font-size:' + fontSize + 'px;color:' + theme.text + ';' + (isSearchHit ? "font-weight:600;" : "") + 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + node.name + "</span>";
+  }
+
+  const right = document.createElement("div");
+  right.style.cssText = "display:flex;align-items:center;gap:6px;flex-shrink:0;";
+
+  if (!node.children) {
+    const isOut = node.status === "out";
+    const badge = document.createElement("button");
+    badge.textContent = node.status;
+    badge.style.cssText = "font-size:" + Math.max(fontSize-2,10) + "px;padding:2px 10px;font-weight:600;border:0.5px solid " + (isOut ? "#E24B4A" : "#639922") + ";background:" + (isOut ? (darkMode ? "#4A1B0C" : "#FCEBEB") : (darkMode ? "#173404" : "#EAF3DE")) + ";color:" + (isOut ? "#A32D2D" : "#3B6D11") + ";";
+    badge.onclick = (e) => { e.stopPropagation(); node.status = node.status === "in" ? "out" : "in"; renderAll(); scheduleSave(); };
+    right.appendChild(badge);
+  }
+
+  const menuBtn = document.createElement("button");
+  menuBtn.innerHTML = iconBtn("ti-dots");
+  menuBtn.style.cssText = "padding:2px 6px;";
+  menuBtn.onclick = (e) => { e.stopPropagation(); openMenu = openMenu === node.id ? null : node.id; deleteConfirmId = null; addFormId = null; reorderId = null; renderAll(); };
+  right.appendChild(menuBtn);
+
+  row.appendChild(left);
+  row.appendChild(right);
+  wrap.appendChild(row);
+
+  if (openMenu === node.id) {
+    if (deleteConfirmId === node.id) {
+      const total = countAll(node) - 1;
+      const box = document.createElement("div");
+      box.style.cssText = "margin:2px 4px 10px 20px;padding:8px 10px;border-radius:8px;background:" + (darkMode ? "#4A1B0C" : "#FCEBEB") + ";";
+      box.innerHTML = '<div style="font-size:12px;color:#A32D2D;margin-bottom:6px;">' + (total > 0 ? ("delete " + node.name + " and " + total + " item" + (total > 1 ? "s" : "") + " inside it?") : ("delete " + node.name + "?")) + "</div>";
+      const btnRow = document.createElement("div");
+      btnRow.style.cssText = "display:flex;gap:6px;";
+      btnRow.appendChild(mkBtn("delete", null, () => deleteNode(node), "danger"));
+      btnRow.appendChild(mkBtn("cancel", null, () => { deleteConfirmId = null; renderAll(); }));
+      box.appendChild(btnRow);
+      wrap.appendChild(box);
+    } else if (reorderId === node.id) {
+      const siblings = findParentArray(data, node.id) || data;
+      const idx = siblings.findIndex(n => n.id === node.id);
+      const box = document.createElement("div");
+      box.style.cssText = "margin:2px 4px 10px 20px;padding:8px 10px;border-radius:8px;background:" + theme.body + ";border:0.5px solid " + theme.border + ";";
+      box.innerHTML = '<div style="font-size:12px;color:' + theme.sub + ';margin-bottom:6px;">reposition ' + node.name + " among its siblings</div>";
+      const btnRow = document.createElement("div");
+      btnRow.style.cssText = "display:flex;gap:6px;";
+      const upBtn = mkBtn("move up", "ti-arrow-up", () => moveNode(node, -1));
+      const downBtn = mkBtn("move down", "ti-arrow-down", () => moveNode(node, 1));
+      if (idx === 0) upBtn.disabled = true;
+      if (idx === siblings.length - 1) downBtn.disabled = true;
+      btnRow.appendChild(upBtn);
+      btnRow.appendChild(downBtn);
+      btnRow.appendChild(mkBtn("done", null, () => { reorderId = null; openMenu = null; renderAll(); }));
+      box.appendChild(btnRow);
+      wrap.appendChild(box);
+    } else if (addFormId === node.id) {
+      const box = document.createElement("div");
+      box.style.cssText = "margin:2px 4px 10px 20px;padding:8px 10px;border-radius:8px;background:" + theme.body + ";border:0.5px solid " + theme.border + ";";
+      const input = document.createElement("input");
+      input.placeholder = "name";
+      input.style.cssText = "font-size:13px;width:100%;margin-bottom:6px;background:" + theme.inputBg + ";color:" + theme.text + ";";
+      box.appendChild(input);
+      const btnRow = document.createElement("div");
+      btnRow.style.cssText = "display:flex;gap:6px;";
+      const confirm = (asCategory) => {
+        if (input.value.trim()) {
+          if (!node.children) node.children = [];
+          node.children.push(asCategory ? { id: nid(), name: input.value.trim(), children: [] } : { id: nid(), name: input.value.trim(), status: "in" });
+          node._open = true;
+        }
+        addFormId = null; openMenu = null; renderAll(); scheduleSave();
+      };
+      btnRow.appendChild(mkBtn("add subcategory", "ti-folder-plus", () => confirm(true)));
+      btnRow.appendChild(mkBtn("add tool", "ti-plus", () => confirm(false)));
+      btnRow.appendChild(mkBtn("cancel", null, () => { addFormId = null; renderAll(); }));
+      box.appendChild(btnRow);
+      wrap.appendChild(box);
+      setTimeout(() => input.focus(), 0);
+    } else {
+      const menu = document.createElement("div");
+      menu.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;padding:6px 4px 10px 20px;";
+      menu.appendChild(mkBtn("rename", "ti-edit", () => { renameId = node.id; openMenu = null; renderAll(); }));
+      menu.appendChild(mkBtn("reorganize", "ti-arrows-sort", () => { reorderId = node.id; renderAll(); }));
+      if (node.children) menu.appendChild(mkBtn("add", "ti-plus", () => { addFormId = node.id; renderAll(); }));
+      menu.appendChild(mkBtn("delete", "ti-trash", () => { deleteConfirmId = node.id; renderAll(); }));
+      wrap.appendChild(menu);
+    }
+  }
+
+  const isOpen = query ? true : (node._open !== false);
+  if (node.children && isOpen) {
+    const childBox = document.createElement("div");
+    const childList = query ? node.children.filter(c => subtreeMatches(c, query)) : node.children;
+    childList.forEach(c => childBox.appendChild(renderNode(c, depth + 1, query)));
+    wrap.appendChild(childBox);
+  } else if (node.children) {
+    const chev = left.querySelector(".chev");
+    if (chev) chev.style.transform = "rotate(-90deg)";
+  }
+
+  return wrap;
+}
+
+function moveNode(node, delta) {
+  const siblings = findParentArray(data, node.id);
+  if (!siblings) return;
+  const idx = siblings.findIndex(n => n.id === node.id);
+  const newIdx = idx + delta;
+  if (newIdx < 0 || newIdx >= siblings.length) return;
+  const tmp = siblings[newIdx];
+  siblings[newIdx] = siblings[idx];
+  siblings[idx] = tmp;
+  renderAll();
+  scheduleSave();
+}
+
+function deleteNode(node) {
+  const parent = findParentArray(data, node.id);
+  if (parent) { const idx = parent.findIndex(n => n.id === node.id); parent.splice(idx, 1); }
+  openMenu = null; deleteConfirmId = null;
+  renderAll();
+  scheduleSave();
+}
+
+document.getElementById("add-root").onclick = () => {
+  const theme = darkMode ? darkTheme : lightTheme;
+  const wrapper = document.getElementById("tree");
+  const box = document.createElement("div");
+  box.style.cssText = "padding:8px 10px;border-radius:8px;background:" + theme.body + ";border:0.5px solid " + theme.border + ";margin-bottom:8px;";
+  const input = document.createElement("input");
+  input.placeholder = "category name";
+  input.style.cssText = "font-size:13px;width:100%;margin-bottom:6px;background:" + theme.inputBg + ";color:" + theme.text + ";";
+  box.appendChild(input);
+  const btnRow = document.createElement("div");
+  btnRow.style.cssText = "display:flex;gap:6px;";
+  btnRow.appendChild(mkBtn("add", "ti-plus", () => {
+    if (input.value.trim()) data.push({ id: nid(), name: input.value.trim(), children: [] });
+    renderAll();
+    scheduleSave();
+  }));
+  btnRow.appendChild(mkBtn("cancel", null, () => renderAll()));
+  box.appendChild(btnRow);
+  wrapper.prepend(box);
+  input.focus();
+};
+
+document.getElementById("settings-btn").onclick = () => {
+  const panel = document.getElementById("settings-panel");
+  panel.style.display = panel.style.display === "none" ? "block" : "none";
+};
+
+function collapseAllNodes(nodes) {
+  nodes.forEach(n => {
+    if (n.children) { n._open = false; collapseAllNodes(n.children); }
+  });
+}
+
+document.getElementById("search-input").oninput = (e) => {
+  searchQuery = e.target.value.trim().toLowerCase();
+  renderAll();
+};
+
+function setAllIn(nodes) {
+  nodes.forEach(n => {
+    if (n.children) setAllIn(n.children);
+    else n.status = "in";
+  });
+}
+
+document.getElementById("reset-all").onclick = () => {
+  setAllIn(data);
+  renderAll();
+  scheduleSave();
+};
+
+document.getElementById("collapse-all").onclick = () => {
+  collapseAllNodes(data);
+  renderAll();
+  scheduleSave();
+};
+
+document.getElementById("font-slider").oninput = (e) => {
+  fontSize = parseInt(e.target.value, 10);
+  document.getElementById("font-val").textContent = fontSize + "px";
+  renderAll();
+  scheduleSave();
+};
+
+document.getElementById("dark-toggle").onclick = () => {
+  darkMode = !darkMode;
+  document.getElementById("dark-knob").style.left = darkMode ? "19px" : "1px";
+  applyTheme();
+  renderAll();
+  scheduleSave();
+};
+
+document.getElementById("restore-defaults-btn").onclick = () => {
+  document.getElementById("restore-confirm").style.display = "block";
+};
+document.getElementById("restore-confirm-no").onclick = () => {
+  document.getElementById("restore-confirm").style.display = "none";
+};
+document.getElementById("restore-confirm-yes").onclick = () => {
+  try {
+    localStorage.removeItem("tool-tree");
+    localStorage.removeItem("tool-settings");
+  } catch (err) {}
+  location.reload();
+};
+
+function applyTheme() {
+  const theme = darkMode ? darkTheme : lightTheme;
+  document.body.classList.toggle("dark", darkMode);
+  document.body.style.background = theme.page;
+  document.getElementById("card").style.background = theme.card;
+  document.getElementById("card").style.borderColor = theme.border;
+  document.getElementById("header").style.background = theme.header;
+  document.getElementById("header").style.borderColor = theme.border;
+  document.getElementById("title").style.color = theme.text;
+  document.getElementById("quickref-section").style.borderColor = theme.border;
+  document.getElementById("settings-panel").style.background = theme.card;
+  document.getElementById("settings-panel").style.borderColor = theme.border;
+  document.getElementById("settings-panel").style.color = theme.text;
+  document.getElementById("restore-confirm").style.background = darkMode ? "#4A1B0C" : "#FCEBEB";
+  document.querySelectorAll("#settings-panel span, #settings-panel label").forEach(el => {
+    if (el.id !== "font-val") return;
+  });
+}
+
+// clicking a checked-out tool: expand every ancestor category and scroll to it
+function locateTool(toolId) {
+  searchQuery = "";
+  document.getElementById("search-input").value = "";
+  const path = findPathTo(data, toolId, []);
+  if (!path) return;
+  path.forEach(n => { if (n.children) n._open = true; });
+  renderAll();
+  setTimeout(() => {
+    const el = document.getElementById("row-" + toolId);
+    if (el) {
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      el.classList.add("highlight");
+      setTimeout(() => el.classList.remove("highlight"), 1200);
+    }
+  }, 50);
+}
+
+function renderAll() {
+  const theme = darkMode ? darkTheme : lightTheme;
+  const tree = document.getElementById("tree");
+  tree.innerHTML = "";
+  const topList = searchQuery ? data.filter(cat => subtreeMatches(cat, searchQuery)) : data;
+  topList.forEach(cat => tree.appendChild(renderNode(cat, 0, searchQuery)));
+  if (searchQuery && topList.length === 0) {
+    tree.innerHTML = '<div style="font-size:13px;color:' + theme.sub + ';padding:12px 4px;">no tools match "' + searchQuery + '"</div>';
+  }
+
+  const qr = document.getElementById("quickref");
+  qr.innerHTML = "";
+  const all = [];
+  data.forEach(c => leaves(c, all));
+  const out = all.filter(t => t.status === "out");
+  out.forEach(t => {
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;align-items:center;font-size:" + Math.max(fontSize-1,11) + "px;color:#A32D2D;cursor:pointer;padding:3px 4px;border-radius:6px;";
+    row.innerHTML = '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#E24B4A;margin-right:8px;flex-shrink:0;"></span>' + t.name;
+    row.onclick = () => locateTool(t.id);
+    qr.appendChild(row);
+  });
+  if (out.length === 0) {
+    qr.innerHTML = '<span style="font-size:12px;color:' + theme.sub + ';">nothing checked out</span>';
+  }
+  document.getElementById("out-legend").style.display = out.length === 0 ? "none" : "inline-flex";
+}
+
+function serializeTree(nodes) {
+  return nodes.map(n => {
+    const copy = { id: n.id, name: n.name };
+    if (n.children) { copy.children = serializeTree(n.children); copy._open = n._open; }
+    else copy.status = n.status;
+    return copy;
+  });
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  const statusEl = document.getElementById("save-status");
+  statusEl.textContent = "saving\u2026";
+  saveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem("tool-tree", JSON.stringify(serializeTree(data)));
+      localStorage.setItem("tool-settings", JSON.stringify({ fontSize, darkMode }));
+      statusEl.textContent = "saved";
+      setTimeout(() => { if (statusEl.textContent === "saved") statusEl.textContent = ""; }, 1500);
+    } catch (err) {
+      statusEl.textContent = "save failed";
+    }
+  }, 400);
+}
+
+function maxUidIn(nodes) {
+  let max = 0;
+  nodes.forEach(n => {
+    const num = parseInt(String(n.id).replace("n", ""), 10);
+    if (!isNaN(num)) max = Math.max(max, num);
+    if (n.children) max = Math.max(max, maxUidIn(n.children));
+  });
+  return max;
+}
+
+function init() {
+  try {
+    const treeRaw = localStorage.getItem("tool-tree");
+    if (treeRaw) {
+      data = JSON.parse(treeRaw);
+      uid = maxUidIn(data) + 1;
+    }
+  } catch (err) {}
+  try {
+    const settingsRaw = localStorage.getItem("tool-settings");
+    if (settingsRaw) {
+      const s = JSON.parse(settingsRaw);
+      fontSize = s.fontSize || 13;
+      darkMode = !!s.darkMode;
+      document.getElementById("font-slider").value = fontSize;
+      document.getElementById("font-val").textContent = fontSize + "px";
+      document.getElementById("dark-knob").style.left = darkMode ? "19px" : "1px";
+    }
+  } catch (err) {}
+  applyTheme();
+  renderAll();
+}
+
+init();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch(() => {});
+  });
+}
+
+</script>
+</body>
+</html>
