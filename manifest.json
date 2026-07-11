@@ -34,5 +34,28 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/screenshot-1-light.png",
+      "sizes": "1140x1722",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Category list, light mode"
+    },
+    {
+      "src": "screenshots/screenshot-2-expanded.png",
+      "sizes": "1140x1722",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Expanded category with subcategories"
+    },
+    {
+      "src": "screenshots/screenshot-3-dark.png",
+      "sizes": "1140x1722",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Dark mode"
+    }
   ]
 }
