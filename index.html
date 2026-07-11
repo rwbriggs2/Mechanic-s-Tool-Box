@@ -15,16 +15,43 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
 <style>
   * { box-sizing: border-box; }
-  body {
+  html, body {
     margin: 0;
+    height: 100%;
+  }
+  body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: #EDEBE4;
     display: flex;
     justify-content: center;
-    padding: 24px 12px;
-    min-height: 100vh;
+    min-height: 100dvh;
   }
-  #outer { width: 100%; max-width: 380px; position: relative; }
+  #outer {
+    width: 100%;
+    max-width: 600px;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  #card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+  #tree {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 8px 10px;
+  }
+  @media (min-width: 640px) {
+    body { padding: 24px 12px; }
+    #outer { min-height: calc(100dvh - 48px); }
+    #card { border-radius: 16px; border: 0.5px solid #e3e1d9; }
+  }
   body { --btn-bg: #E8E6DC; --btn-border: #9c9a90; --btn-text: #2C2C2A; --btn-hover: #DCD9CC; }
   body.dark { --btn-bg: #34342f; --btn-border: #59584f; --btn-text: #F1EFE8; --btn-hover: #40403a; }
   button {
@@ -58,8 +85,8 @@
 <body>
 
 <div id="outer">
-  <div id="card" style="border-radius: 16px; border: 0.5px solid #e3e1d9; overflow: hidden;">
-    <div id="header" style="padding: 12px 14px; border-bottom: 0.5px solid #e3e1d9; position: relative;">
+  <div id="card">
+    <div id="header" style="padding: calc(12px + env(safe-area-inset-top)) 14px 12px; border-bottom: 0.5px solid #e3e1d9; position: relative;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
         <span id="title" style="font-size: 16px; font-weight: 600;">Mechanic's Tool Tracker</span>
         <button id="settings-btn" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0;">
@@ -106,9 +133,9 @@
       </div>
     </div>
 
-    <div id="tree" style="height: 380px; overflow-y: auto; padding: 8px 10px;"></div>
+    <div id="tree"></div>
 
-    <div id="quickref-section" style="border-top: 0.5px solid #e3e1d9; padding: 10px 14px 54px; position: relative;">
+    <div id="quickref-section" style="border-top: 0.5px solid #e3e1d9; padding: 10px 14px calc(54px + env(safe-area-inset-bottom)); position: relative;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
         <span style="font-size: 12px; color: #8a8880;">checked out (tap to locate)</span>
         <span id="out-legend" style="font-size: 11px; color: #A32D2D;"><i class="ti ti-circle-filled" style="font-size:8px; vertical-align:1px; margin-right:3px;"></i>out</span>
@@ -484,9 +511,13 @@ function renderAll() {
   data.forEach(c => leaves(c, all));
   const out = all.filter(t => t.status === "out");
   out.forEach(t => {
+    const path = findPathTo(data, t.id, []) || [];
+    const ancestors = path.slice(0, -1).map(n => n.name).join(" > ");
     const row = document.createElement("div");
-    row.style.cssText = "display:flex;align-items:center;font-size:" + Math.max(fontSize-1,11) + "px;color:#A32D2D;cursor:pointer;padding:3px 4px;border-radius:6px;";
-    row.innerHTML = '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#E24B4A;margin-right:8px;flex-shrink:0;"></span>' + t.name;
+    row.style.cssText = "display:flex;flex-direction:column;font-size:" + Math.max(fontSize-1,11) + "px;color:#A32D2D;cursor:pointer;padding:4px 4px;border-radius:6px;";
+    row.innerHTML =
+      '<div style="display:flex;align-items:center;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#E24B4A;margin-right:8px;flex-shrink:0;"></span>' + t.name + '</div>' +
+      (ancestors ? '<div style="font-size:' + Math.max(fontSize-3,9) + 'px;color:' + theme.sub + ';margin-left:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + ancestors + '</div>' : '');
     row.onclick = () => locateTool(t.id);
     qr.appendChild(row);
   });
