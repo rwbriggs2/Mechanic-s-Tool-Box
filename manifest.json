@@ -1,4 +1,5 @@
 {
+  "id": "/tool-tracker/",
   "name": "Mechanic's Tool Tracker",
   "short_name": "Tool Tracker",
   "description": "Track hand tools, power tools, and equipment by category, with a quick view of what's checked in and out.",
