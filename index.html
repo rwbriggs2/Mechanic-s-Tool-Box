@@ -89,6 +89,12 @@
     <div id="header" style="padding: calc(12px + env(safe-area-inset-top)) 14px 12px; border-bottom: 0.5px solid #e3e1d9; position: relative;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
         <span id="title" style="font-size: 16px; font-weight: 600;">Mechanic's Tool Tracker</span>
+        <button id="guide-btn" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0; margin-right: 8px;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5F5E5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+        </button>
         <button id="settings-btn" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5F5E5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
@@ -120,6 +126,14 @@
           </button>
         </div>
         <div id="save-status" style="font-size: 11px; color: #8a8880; margin-top: 10px;"></div>
+        <div id="pro-section" style="border-top: 0.5px solid #e3e1d9; margin-top: 10px; padding-top: 10px;">
+          <div id="pro-status-free" style="display:block;">
+            <div style="font-size: 12px; color: #5F5E5A; margin-bottom: 6px;"><span id="free-tool-count">0</span>/<span id="free-tool-max">75</span> tools used (free)</div>
+            <button id="upgrade-pro-btn" style="font-size: 11px; padding: 5px 10px; width: 100%; font-weight: 700;">⭐ Upgrade to Pro — unlimited tools + Quick Guide</button>
+            <button id="restore-purchase-btn" style="font-size: 10px; padding: 3px 8px; width: 100%; margin-top: 6px; background: transparent; border: none; text-decoration: underline; color: #8a8880;">Restore purchase</button>
+          </div>
+          <div id="pro-status-active" style="display:none; font-size: 12px; color: #3B6D11; font-weight: 600;">✓ Tool Tracker Pro unlocked</div>
+        </div>
         <div style="border-top: 0.5px solid #e3e1d9; margin-top: 10px; padding-top: 10px;">
           <button id="restore-defaults-btn" style="font-size: 11px; padding: 4px 10px; width: 100%;">Restore defaults</button>
           <div id="restore-confirm" style="display:none; margin-top: 8px; padding: 8px; border-radius: 8px; background: #FCEBEB;">
@@ -146,7 +160,273 @@
       <button id="collapse-all" style="position: absolute; bottom: 10px; right: 12px; font-size: 11px; padding: 4px 10px; white-space: nowrap;"><i class="ti ti-arrows-minimize" style="font-size:13px; vertical-align:-2px; margin-right:4px;"></i>collapse all</button>
     </div>
   </div>
+
+  <div id="upsell-overlay" style="display:none; position: absolute; inset: 0; background: rgba(0,0,0,0.45); z-index: 20; align-items: center; justify-content: center; padding: 24px;">
+    <div style="background: #ffffff; border-radius: 16px; padding: 20px; max-width: 300px; width: 100%; text-align: center;">
+      <div style="font-size: 32px; margin-bottom: 8px;">⭐</div>
+      <div style="font-size: 16px; font-weight: 700; margin-bottom: 6px;">Unlock unlimited tools</div>
+      <div style="font-size: 13px; color: #5F5E5A; margin-bottom: 16px; line-height: 1.4;">You've reached the free limit of <span id="upsell-max">75</span> tools. Upgrade to Tool Tracker Pro for unlimited tools and access to the Quick Guide reference page.</div>
+      <button id="upsell-upgrade-btn" style="width: 100%; padding: 8px; font-weight: 700; margin-bottom: 8px;">Upgrade to Pro</button>
+      <button id="upsell-cancel-btn" style="width: 100%; padding: 8px; background: transparent; border: none; color: #8a8880; text-decoration: underline;">Not now</button>
+      <div id="upsell-message" style="font-size: 11px; color: #8a8880; margin-top: 10px;"></div>
+    </div>
+  </div>
+
+  <div id="guide-overlay" style="display:none; position: absolute; inset: 0; background: #ffffff; z-index: 25; flex-direction: column;">
+    <div style="padding: calc(12px + env(safe-area-inset-top)) 14px 12px; border-bottom: 0.5px solid #e3e1d9; display: flex; align-items: center; justify-content: space-between;">
+      <span style="font-size: 16px; font-weight: 700;">Quick Guide</span>
+      <button id="guide-close-btn" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5F5E5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div id="guide-nav" style="display: flex; gap: 8px; padding: 10px 14px; border-bottom: 0.5px solid #e3e1d9; overflow-x: auto;">
+      <button class="guide-nav-btn" data-section="conversions" style="font-size: 12px; padding: 5px 12px; white-space: nowrap; flex-shrink: 0;">Conversions</button>
+      <button class="guide-nav-btn" data-section="fractions" style="font-size: 12px; padding: 5px 12px; white-space: nowrap; flex-shrink: 0;">Fraction, Decimal, and Metric Equivalents</button>
+      <button class="guide-nav-btn" data-section="temperature" style="font-size: 12px; padding: 5px 12px; white-space: nowrap; flex-shrink: 0;">Temperature</button>
+      <button class="guide-nav-btn" data-section="mathsymbols" style="font-size: 12px; padding: 5px 12px; white-space: nowrap; flex-shrink: 0;">Math symbols</button>
+      <button class="guide-nav-btn" data-section="mathconstants" style="font-size: 12px; padding: 5px 12px; white-space: nowrap; flex-shrink: 0;">Math constants</button>
+      <button class="guide-nav-btn" data-section="geometry" style="font-size: 12px; padding: 5px 12px; white-space: nowrap; flex-shrink: 0;">Geometry</button>
+      <button class="guide-nav-btn" data-section="electrical" style="font-size: 12px; padding: 5px 12px; white-space: nowrap; flex-shrink: 0;">Electrical symbols</button>
+      <button class="guide-nav-btn" data-section="electricalformulas" style="font-size: 12px; padding: 5px 12px; white-space: nowrap; flex-shrink: 0;">Electrical formulas</button>
+    </div>
+
+    <div id="guide-content" style="flex: 1; overflow-y: auto; padding: 14px 16px calc(24px + env(safe-area-inset-bottom));">
+
+      <div class="guide-section" data-section="conversions">
+        <div style="font-size: 12px; color: #8a8880; margin-bottom: 16px; line-height: 1.4;">Multiply the value in the "from" column by the factor to get the value in the "to" column.</div>
+
+        <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Distance / length</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 20px;">
+          <tr style="border-bottom: 0.5px solid #e3e1d9;"><td style="padding: 5px 0; color: #5F5E5A;">From</td><td style="padding: 5px 0; color: #5F5E5A; text-align:center;">Multiply by</td><td style="padding: 5px 0; color: #5F5E5A;">To get</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Miles</td><td style="padding: 5px 0; text-align:center;">× 1.609</td><td style="padding: 5px 0;">Kilometers</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Kilometers</td><td style="padding: 5px 0; text-align:center;">× 0.621</td><td style="padding: 5px 0;">Miles</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Feet</td><td style="padding: 5px 0; text-align:center;">× 0.305</td><td style="padding: 5px 0;">Meters</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Meters</td><td style="padding: 5px 0; text-align:center;">× 3.281</td><td style="padding: 5px 0;">Feet</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Inches</td><td style="padding: 5px 0; text-align:center;">× 2.54</td><td style="padding: 5px 0;">Centimeters</td></tr>
+          <tr><td style="padding: 5px 0;">Centimeters</td><td style="padding: 5px 0; text-align:center;">× 0.394</td><td style="padding: 5px 0;">Inches</td></tr>
+        </table>
+
+        <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Weight</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 20px;">
+          <tr style="border-bottom: 0.5px solid #e3e1d9;"><td style="padding: 5px 0; color: #5F5E5A;">From</td><td style="padding: 5px 0; color: #5F5E5A; text-align:center;">Multiply by</td><td style="padding: 5px 0; color: #5F5E5A;">To get</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Pounds</td><td style="padding: 5px 0; text-align:center;">× 0.454</td><td style="padding: 5px 0;">Kilograms</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Kilograms</td><td style="padding: 5px 0; text-align:center;">× 2.205</td><td style="padding: 5px 0;">Pounds</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Ounces</td><td style="padding: 5px 0; text-align:center;">× 28.35</td><td style="padding: 5px 0;">Grams</td></tr>
+          <tr><td style="padding: 5px 0;">Grams</td><td style="padding: 5px 0; text-align:center;">× 0.035</td><td style="padding: 5px 0;">Ounces</td></tr>
+        </table>
+
+        <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Volume</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 20px;">
+          <tr style="border-bottom: 0.5px solid #e3e1d9;"><td style="padding: 5px 0; color: #5F5E5A;">From</td><td style="padding: 5px 0; color: #5F5E5A; text-align:center;">Multiply by</td><td style="padding: 5px 0; color: #5F5E5A;">To get</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Gallons (US)</td><td style="padding: 5px 0; text-align:center;">× 3.785</td><td style="padding: 5px 0;">Liters</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Liters</td><td style="padding: 5px 0; text-align:center;">× 0.264</td><td style="padding: 5px 0;">Gallons (US)</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Quarts (US)</td><td style="padding: 5px 0; text-align:center;">× 0.946</td><td style="padding: 5px 0;">Liters</td></tr>
+          <tr><td style="padding: 5px 0;">Fluid ounces (US)</td><td style="padding: 5px 0; text-align:center;">× 29.57</td><td style="padding: 5px 0;">Milliliters</td></tr>
+        </table>
+
+        <div style="font-size: 11px; color: #8a8880; line-height: 1.5; border-top: 0.5px solid #e3e1d9; padding-top: 12px;">
+          Figures rounded to 3 decimal places for everyday shop use.
+        </div>
+      </div>
+
+      <div class="guide-section" data-section="fractions">
+        <div style="font-size: 12px; color: #8a8880; margin-bottom: 16px; line-height: 1.4;">Common inch fractions with their decimal and millimeter equivalents — e.g. 1/2" = .5 = 12.700 mm.</div>
+
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 12px;">
+          <tr style="border-bottom: 0.5px solid #e3e1d9;"><td style="padding: 5px 0; color: #5F5E5A;">Fraction</td><td style="padding: 5px 0; color: #5F5E5A; text-align:center;">Decimal</td><td style="padding: 5px 0; color: #5F5E5A; text-align:right;">Millimeters</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">1/16"</td><td style="padding: 5px 0; text-align:center;">.0625</td><td style="padding: 5px 0; text-align:right;">1.588 mm</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">1/8"</td><td style="padding: 5px 0; text-align:center;">.125</td><td style="padding: 5px 0; text-align:right;">3.175 mm</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">3/16"</td><td style="padding: 5px 0; text-align:center;">.1875</td><td style="padding: 5px 0; text-align:right;">4.763 mm</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">1/4"</td><td style="padding: 5px 0; text-align:center;">.25</td><td style="padding: 5px 0; text-align:right;">6.350 mm</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">5/16"</td><td style="padding: 5px 0; text-align:center;">.3125</td><td style="padding: 5px 0; text-align:right;">7.938 mm</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">3/8"</td><td style="padding: 5px 0; text-align:center;">.375</td><td style="padding: 5px 0; text-align:right;">9.525 mm</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">7/16"</td><td style="padding: 5px 0; text-align:center;">.4375</td><td style="padding: 5px 0; text-align:right;">11.113 mm</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">1/2"</td><td style="padding: 5px 0; text-align:center;">.5</td><td style="padding: 5px 0; text-align:right;">12.700 mm</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">9/16"</td><td style="padding: 5px 0; text-align:center;">.5625</td><td style="padding: 5px 0; text-align:right;">14.288 mm</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">5/8"</td><td style="padding: 5px 0; text-align:center;">.625</td><td style="padding: 5px 0; text-align:right;">15.875 mm</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">11/16"</td><td style="padding: 5px 0; text-align:center;">.6875</td><td style="padding: 5px 0; text-align:right;">17.463 mm</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">3/4"</td><td style="padding: 5px 0; text-align:center;">.75</td><td style="padding: 5px 0; text-align:right;">19.050 mm</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">13/16"</td><td style="padding: 5px 0; text-align:center;">.8125</td><td style="padding: 5px 0; text-align:right;">20.638 mm</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">7/8"</td><td style="padding: 5px 0; text-align:center;">.875</td><td style="padding: 5px 0; text-align:right;">22.225 mm</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">15/16"</td><td style="padding: 5px 0; text-align:center;">.9375</td><td style="padding: 5px 0; text-align:right;">23.813 mm</td></tr>
+          <tr><td style="padding: 5px 0;">1"</td><td style="padding: 5px 0; text-align:center;">1.0</td><td style="padding: 5px 0; text-align:right;">25.400 mm</td></tr>
+        </table>
+
+        <div style="font-size: 11px; color: #8a8880; line-height: 1.5; border-top: 0.5px solid #e3e1d9; padding-top: 12px;">
+          Millimeter values rounded to 3 decimal places.
+        </div>
+      </div>
+
+      <div class="guide-section" data-section="temperature">
+        <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Temperature conversion formulas</div>
+        <div style="font-size: 12.5px; color: #3a3a37; margin-bottom: 4px;">°F to °C: (°F − 32) × 0.556 = °C</div>
+        <div style="font-size: 12.5px; color: #3a3a37; margin-bottom: 20px;">°C to °F: (°C × 1.8) + 32 = °F</div>
+
+        <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Temperature conversion quick reference</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 12px;">
+          <tr style="border-bottom: 0.5px solid #e3e1d9;"><td style="padding: 5px 0; color: #5F5E5A;">°F</td><td style="padding: 5px 0; color: #5F5E5A; text-align:right;">°C</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Reference</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">-40°F</td><td style="padding: 5px 0; text-align:right;">-40°C</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Scales meet</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">0°F</td><td style="padding: 5px 0; text-align:right;">-17.8°C</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;"></td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">32°F</td><td style="padding: 5px 0; text-align:right;">0°C</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Water freezes</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">50°F</td><td style="padding: 5px 0; text-align:right;">10°C</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;"></td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">59°F</td><td style="padding: 5px 0; text-align:right;">15°C</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Standard day (ISA)</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">68°F</td><td style="padding: 5px 0; text-align:right;">20°C</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Room temp</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">98.6°F</td><td style="padding: 5px 0; text-align:right;">37°C</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Body temp</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">150°F</td><td style="padding: 5px 0; text-align:right;">65.6°C</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;"></td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">200°F</td><td style="padding: 5px 0; text-align:right;">93.3°C</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;"></td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">212°F</td><td style="padding: 5px 0; text-align:right;">100°C</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Water boils</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">250°F</td><td style="padding: 5px 0; text-align:right;">121.1°C</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;"></td></tr>
+          <tr><td style="padding: 5px 0;">300°F</td><td style="padding: 5px 0; text-align:right;">148.9°C</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;"></td></tr>
+        </table>
+
+        <div style="font-size: 11px; color: #8a8880; line-height: 1.5; border-top: 0.5px solid #e3e1d9; padding-top: 12px;">
+          Values rounded to 1 decimal place.
+        </div>
+      </div>
+
+      <div class="guide-section" data-section="mathsymbols">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 12px;">
+          <tr style="border-bottom: 0.5px solid #e3e1d9;"><td style="padding: 5px 0; color: #5F5E5A;">Symbol</td><td style="padding: 5px 0; color: #5F5E5A;">Name</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Meaning</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">+</td><td style="padding: 5px 0;">Plus</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Addition</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">−</td><td style="padding: 5px 0;">Minus</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Subtraction</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">×</td><td style="padding: 5px 0;">Times</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Multiplication</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">÷</td><td style="padding: 5px 0;">Divided by</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Division</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">=</td><td style="padding: 5px 0;">Equals</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Is the same as</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">≠</td><td style="padding: 5px 0;">Not equal to</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Different from</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">≈</td><td style="padding: 5px 0;">Approximately equal to</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Roughly equal</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">±</td><td style="padding: 5px 0;">Plus or minus</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Tolerance range</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">&lt;</td><td style="padding: 5px 0;">Less than</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Smaller than</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">&gt;</td><td style="padding: 5px 0;">Greater than</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Larger than</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">≤</td><td style="padding: 5px 0;">Less than or equal to</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Smaller than or equal</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">≥</td><td style="padding: 5px 0;">Greater than or equal to</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Larger than or equal</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">%</td><td style="padding: 5px 0;">Percent</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Out of 100</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">°</td><td style="padding: 5px 0;">Degree</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Angle or temperature unit</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">√</td><td style="padding: 5px 0;">Square root</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">√9 = 3</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">π</td><td style="padding: 5px 0;">Pi</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">≈ 3.14159</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Δ</td><td style="padding: 5px 0;">Delta</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Change in a value</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">∑</td><td style="padding: 5px 0;">Sigma</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Sum of a series</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">∞</td><td style="padding: 5px 0;">Infinity</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Without limit</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">x²</td><td style="padding: 5px 0;">Squared</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">x × x</td></tr>
+          <tr><td style="padding: 5px 0;">x³</td><td style="padding: 5px 0;">Cubed</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">x × x × x</td></tr>
+        </table>
+      </div>
+
+      <div class="guide-section" data-section="mathconstants">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 12px;">
+          <tr style="border-bottom: 0.5px solid #e3e1d9;"><td style="padding: 5px 0; color: #5F5E5A;">Symbol</td><td style="padding: 5px 0; color: #5F5E5A;">Name</td><td style="padding: 5px 0; color: #5F5E5A; text-align:right;">Value</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">π</td><td style="padding: 5px 0;">Pi</td><td style="padding: 5px 0; text-align:right;">3.14159</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">e</td><td style="padding: 5px 0;">Euler's number</td><td style="padding: 5px 0; text-align:right;">2.71828</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">φ</td><td style="padding: 5px 0;">Golden ratio</td><td style="padding: 5px 0; text-align:right;">1.61803</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">√2</td><td style="padding: 5px 0;">Pythagoras' constant</td><td style="padding: 5px 0; text-align:right;">1.41421</td></tr>
+          <tr><td style="padding: 5px 0;">γ</td><td style="padding: 5px 0;">Euler-Mascheroni constant</td><td style="padding: 5px 0; text-align:right;">0.57722</td></tr>
+        </table>
+        <div style="font-size: 11px; color: #8a8880; line-height: 1.5; border-top: 0.5px solid #e3e1d9; padding-top: 12px;">
+          Values rounded to 5 decimal places.
+        </div>
+      </div>
+
+      <div class="guide-section" data-section="geometry">
+        <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">2D shapes — area</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 20px;">
+          <tr style="border-bottom: 0.5px solid #e3e1d9;"><td style="padding: 5px 0; color: #5F5E5A;">Shape</td><td style="padding: 5px 0; color: #5F5E5A;">Area formula</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Triangle</td><td style="padding: 5px 0;">½ × base × height</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Square</td><td style="padding: 5px 0;">side²</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Rectangle</td><td style="padding: 5px 0;">length × width</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Parallelogram</td><td style="padding: 5px 0;">base × height</td></tr>
+          <tr><td style="padding: 5px 0;">Trapezoid</td><td style="padding: 5px 0;">½ × (base1 + base2) × height</td></tr>
+        </table>
+
+        <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Circle and ellipse</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 20px;">
+          <tr style="border-bottom: 0.5px solid #e3e1d9;"><td style="padding: 5px 0; color: #5F5E5A;">Shape</td><td style="padding: 5px 0; color: #5F5E5A;">Area</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Circumference</td></tr>
+          <tr><td style="padding: 5px 0;">Circle (radius r)</td><td style="padding: 5px 0;">π × r²</td><td style="padding: 5px 0 5px 14px;">2 × π × r</td></tr>
+          <tr><td style="padding: 5px 0; vertical-align: top;">Ellipse (semi-axes a, b)</td><td style="padding: 5px 0; vertical-align: top;">π × a × b</td><td style="padding: 5px 0 5px 14px;">≈ π × [3(a+b) − √((3a+b)(a+3b))]</td></tr>
+        </table>
+        <div style="font-size: 11px; color: #8a8880; line-height: 1.5; margin-bottom: 20px;">
+          The ellipse circumference formula is an approximation (Ramanujan) — there's no exact simple formula.
+        </div>
+
+        <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">3D shapes — surface area and volume</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 12px;">
+          <tr style="border-bottom: 0.5px solid #e3e1d9;"><td style="padding: 5px 0; color: #5F5E5A;">Shape</td><td style="padding: 5px 0; color: #5F5E5A;">Surface area</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Volume</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Sphere (radius r)</td><td style="padding: 5px 0;">4 × π × r²</td><td style="padding: 5px 0 5px 14px;">4/3 × π × r³</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0;">Cube (side s)</td><td style="padding: 5px 0;">6 × s²</td><td style="padding: 5px 0 5px 14px;">s³</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0; vertical-align: top;">Rectangular solid (l, w, h)</td><td style="padding: 5px 0; vertical-align: top;">2 × (lw + lh + wh)</td><td style="padding: 5px 0 5px 14px;">l × w × h</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 0; vertical-align: top;">Cone (radius r, height h, slant l)</td><td style="padding: 5px 0; vertical-align: top;">π × r × (r + l)</td><td style="padding: 5px 0 5px 14px;">1/3 × π × r² × h</td></tr>
+          <tr><td style="padding: 5px 0; vertical-align: top;">Cylinder (radius r, height h)</td><td style="padding: 5px 0; vertical-align: top;">2 × π × r × (r + h)</td><td style="padding: 5px 0 5px 14px;">π × r² × h</td></tr>
+        </table>
+        <div style="font-size: 11px; color: #8a8880; line-height: 1.5; border-top: 0.5px solid #e3e1d9; padding-top: 12px;">
+          Cone slant height (l) = √(r² + h²) if not already known.
+        </div>
+      </div>
+
+      <div class="guide-section" data-section="electrical">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 12px;">
+          <tr style="border-bottom: 0.5px solid #e3e1d9;"><td style="padding: 5px 8px 5px 0; color: #5F5E5A;">Symbol</td><td style="padding: 5px 0; color: #5F5E5A;">Name</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Description</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; font-family: monospace;">-| |-</td><td style="padding: 5px 0;">Battery</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">DC power source (long line +, short line −)</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; font-family: monospace;">⏚</td><td style="padding: 5px 0;">Ground / earth</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Common return path or chassis reference</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; font-family: monospace;">-\/\/\-</td><td style="padding: 5px 0;">Resistor</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Resists / limits current flow</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; font-family: monospace;">-| |-</td><td style="padding: 5px 0;">Capacitor</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Stores electrical charge</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; font-family: monospace;">-▷|-</td><td style="padding: 5px 0;">Diode</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Allows current in one direction only</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; font-family: monospace;">-◁-</td><td style="padding: 5px 0;">LED</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Diode that emits light when current flows</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; font-family: monospace;">-○ ○-</td><td style="padding: 5px 0;">Switch</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Opens or closes a circuit path</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; font-family: monospace;">-⌒⌒⌒-</td><td style="padding: 5px 0;">Fuse</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Breaks the circuit if current is too high</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; font-family: monospace;">(M)</td><td style="padding: 5px 0;">Motor</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Converts electrical energy to motion</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; font-family: monospace;">⟟</td><td style="padding: 5px 0;">Relay</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Electrically-operated switch (coil + contacts)</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; font-family: monospace;">•</td><td style="padding: 5px 0;">Wire junction</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Dot marks wires that are connected</td></tr>
+          <tr><td style="padding: 5px 8px 5px 0; font-family: monospace;">⌒</td><td style="padding: 5px 0;">Wire crossover</td><td style="padding: 5px 0 5px 14px; color: #5F5E5A;">Wires cross but are not connected (no dot)</td></tr>
+        </table>
+      </div>
+
+      <div class="guide-section" data-section="electricalformulas">
+        <div style="font-size: 14px; font-weight: 700; margin-bottom: 4px;">Ohm's law and Watt's law</div>
+        <div style="font-size: 12px; color: #8a8880; margin-bottom: 12px; line-height: 1.4;">V = volts, I = current (amps), R = resistance (ohms), P = power (watts). Every quantity can be found from any two of the others.</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
+          <tr style="border-bottom: 0.5px solid #e3e1d9;"><td style="padding: 5px 8px 5px 0; color: #5F5E5A;">To find</td><td style="padding: 5px 0; color: #5F5E5A;" colspan="3">Formulas</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; font-weight: 600;">V</td><td style="padding: 5px 4px 5px 0;">I × R</td><td style="padding: 5px 4px 5px 0;">P / I</td><td style="padding: 5px 0;">√(P × R)</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; font-weight: 600;">I</td><td style="padding: 5px 4px 5px 0;">V / R</td><td style="padding: 5px 4px 5px 0;">P / V</td><td style="padding: 5px 0;">√(P / R)</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; font-weight: 600;">R</td><td style="padding: 5px 4px 5px 0;">V / I</td><td style="padding: 5px 4px 5px 0;">V² / P</td><td style="padding: 5px 0;">P / I²</td></tr>
+          <tr><td style="padding: 5px 8px 5px 0; font-weight: 600;">P</td><td style="padding: 5px 4px 5px 0;">V × I</td><td style="padding: 5px 4px 5px 0;">I² × R</td><td style="padding: 5px 0;">V² / R</td></tr>
+        </table>
+
+        <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px; margin-top: 20px;">Resistance</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 12px;">
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0;">Series</td><td style="padding: 5px 0;">R_total = R1 + R2 + ... + Rn</td></tr>
+          <tr><td style="padding: 5px 8px 5px 0; vertical-align: top;">Parallel</td><td style="padding: 5px 0;">1/R_total = 1/R1 + 1/R2 + ... + 1/Rn<br>(two resistors: R_total = (R1 × R2) / (R1 + R2))</td></tr>
+        </table>
+
+        <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Capacitance</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 12px;">
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; vertical-align: top;">Series</td><td style="padding: 5px 0;">1/C_total = 1/C1 + 1/C2 + ... + 1/Cn</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0;">Parallel</td><td style="padding: 5px 0;">C_total = C1 + C2 + ... + Cn</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0;">Charge stored</td><td style="padding: 5px 0;">Q = C × V</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0;">Energy stored</td><td style="padding: 5px 0;">E = ½ × C × V²</td></tr>
+          <tr><td style="padding: 5px 8px 5px 0;">Capacitive reactance</td><td style="padding: 5px 0;">Xc = 1 / (2 × π × f × C)</td></tr>
+        </table>
+
+        <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Inductance</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 12px;">
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0;">Series</td><td style="padding: 5px 0;">L_total = L1 + L2 + ... + Ln</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0; vertical-align: top;">Parallel</td><td style="padding: 5px 0;">1/L_total = 1/L1 + 1/L2 + ... + 1/Ln</td></tr>
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0;">Energy stored</td><td style="padding: 5px 0;">E = ½ × L × I²</td></tr>
+          <tr><td style="padding: 5px 8px 5px 0;">Inductive reactance</td><td style="padding: 5px 0;">XL = 2 × π × f × L</td></tr>
+        </table>
+
+        <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Time constants</div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
+          <tr style="border-bottom: 0.5px solid #eee;"><td style="padding: 5px 8px 5px 0;">RC circuit</td><td style="padding: 5px 0;">τ = R × C</td></tr>
+          <tr><td style="padding: 5px 8px 5px 0;">RL circuit</td><td style="padding: 5px 0;">τ = L / R</td></tr>
+        </table>
+        <div style="font-size: 11px; color: #8a8880; line-height: 1.5; border-top: 0.5px solid #e3e1d9; padding-top: 12px; margin-top: 12px;">
+          f = frequency (Hz), τ (tau) = time constant in seconds.
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
+
 
 <script>
 let uid = 0;
@@ -176,6 +456,11 @@ let reorderId = null;
 let fontSize = 13;
 let darkMode = false;
 let searchQuery = "";
+const MONETIZATION_ENABLED = false; // flip to true when ready to re-enable the paywall
+const PRO_PRODUCT_ID = "pro_unlock";
+const MAX_FREE_TOOLS = 75;
+let isPro = false;
+try { isPro = localStorage.getItem("tool-tracker-pro") === "true"; } catch (err) {}
 let saveTimer = null;
 
 const lightTheme = { page: "#EDEBE4", card: "#ffffff", header: "#ffffff", body: "#ffffff", border: "#e3e1d9", text: "#2C2C2A", sub: "#5F5E5A", inputBg: "#ffffff" };
@@ -313,6 +598,15 @@ function renderNode(node, depth, query) {
       const btnRow = document.createElement("div");
       btnRow.style.cssText = "display:flex;gap:6px;";
       const confirm = (asCategory) => {
+        if (!asCategory && MONETIZATION_ENABLED && !isPro) {
+          const allTools = [];
+          data.forEach(c => leaves(c, allTools));
+          if (allTools.length >= MAX_FREE_TOOLS) {
+            addFormId = null; openMenu = null; renderAll();
+            showUpsell();
+            return;
+          }
+        }
         if (input.value.trim()) {
           if (!node.children) node.children = [];
           node.children.push(asCategory ? { id: nid(), name: input.value.trim(), children: [] } : { id: nid(), name: input.value.trim(), status: "in" });
@@ -458,6 +752,135 @@ document.getElementById("restore-confirm-yes").onclick = () => {
   location.reload();
 };
 
+// ---- Tool Tracker Pro (Google Play Billing via Digital Goods API) ----
+// Note: purchasing only works when this app is installed through Google Play
+// (running as a Trusted Web Activity). In a regular browser tab, window.getDigitalGoodsService
+// won't exist, so we show a friendly explanation instead of a broken purchase flow.
+
+async function getDigitalGoodsService() {
+  if (!window.getDigitalGoodsService) return null;
+  try {
+    return await window.getDigitalGoodsService("https://play.google.com/billing");
+  } catch (err) {
+    return null;
+  }
+}
+
+function setProState(value) {
+  isPro = value;
+  try { localStorage.setItem("tool-tracker-pro", value ? "true" : "false"); } catch (err) {}
+  updateProUI();
+}
+
+async function checkProStatus(showFeedback) {
+  const service = await getDigitalGoodsService();
+  if (!service) {
+    if (showFeedback) {
+      document.getElementById("upsell-message").textContent = "";
+    }
+    return;
+  }
+  try {
+    const purchases = await service.listPurchases();
+    const owned = purchases.some(p => p.itemId === PRO_PRODUCT_ID);
+    setProState(owned);
+    if (showFeedback) {
+      const msg = document.getElementById("upsell-message");
+      if (msg) msg.textContent = owned ? "Purchase restored!" : "No previous purchase found.";
+    }
+  } catch (err) {}
+}
+
+async function purchasePro() {
+  const service = await getDigitalGoodsService();
+  if (!service) {
+    const msg = document.getElementById("upsell-message");
+    if (msg) msg.textContent = "Upgrading to Pro is available in the Google Play version of the app.";
+    return;
+  }
+  try {
+    const paymentMethods = [{ supportedMethods: "https://play.google.com/billing", data: { sku: PRO_PRODUCT_ID } }];
+    const paymentDetails = { total: { label: "Tool Tracker Pro", amount: { currency: "USD", value: "0" } } };
+    const request = new PaymentRequest(paymentMethods, paymentDetails);
+    const response = await request.show();
+    const { purchaseToken } = response.details;
+    await response.complete("success");
+    await service.acknowledge(purchaseToken, "onetime");
+    setProState(true);
+    hideUpsell();
+  } catch (err) {
+    const msg = document.getElementById("upsell-message");
+    if (msg) msg.textContent = "Purchase cancelled or unavailable.";
+  }
+}
+
+function updateProUI() {
+  const section = document.getElementById("pro-section");
+  if (!MONETIZATION_ENABLED) {
+    if (section) section.style.display = "none";
+    return;
+  }
+  if (section) section.style.display = "block";
+  const freeEl = document.getElementById("pro-status-free");
+  const activeEl = document.getElementById("pro-status-active");
+  if (!freeEl || !activeEl) return;
+  if (isPro) {
+    freeEl.style.display = "none";
+    activeEl.style.display = "block";
+  } else {
+    freeEl.style.display = "block";
+    activeEl.style.display = "none";
+    const countEl = document.getElementById("free-tool-count");
+    if (countEl) {
+      const allTools = [];
+      data.forEach(c => leaves(c, allTools));
+      countEl.textContent = String(allTools.length);
+    }
+  }
+}
+
+function showUpsell() {
+  document.getElementById("upsell-message").textContent = "";
+  document.getElementById("upsell-overlay").style.display = "flex";
+}
+function hideUpsell() {
+  document.getElementById("upsell-overlay").style.display = "none";
+}
+
+document.getElementById("upgrade-pro-btn").onclick = () => showUpsell();
+document.getElementById("upsell-cancel-btn").onclick = () => hideUpsell();
+document.getElementById("upsell-upgrade-btn").onclick = () => purchasePro();
+document.getElementById("restore-purchase-btn").onclick = () => checkProStatus(true);
+
+document.getElementById("guide-btn").onclick = () => {
+  if (!MONETIZATION_ENABLED || isPro) {
+    document.getElementById("guide-overlay").style.display = "flex";
+  } else {
+    showUpsell();
+  }
+};
+document.getElementById("guide-close-btn").onclick = () => {
+  document.getElementById("guide-overlay").style.display = "none";
+};
+
+function toggleGuideSection(sectionId) {
+  const el = document.querySelector('.guide-section[data-section="' + sectionId + '"]');
+  const btn = document.querySelector('.guide-nav-btn[data-section="' + sectionId + '"]');
+  if (!el) return;
+  const isOpen = el.style.display !== "none";
+  el.style.display = isOpen ? "none" : "block";
+  if (btn) {
+    btn.style.background = isOpen ? "var(--btn-bg)" : "var(--btn-text)";
+    btn.style.color = isOpen ? "var(--btn-text)" : "var(--btn-bg)";
+  }
+}
+document.querySelectorAll(".guide-nav-btn").forEach(btn => {
+  btn.onclick = () => toggleGuideSection(btn.dataset.section);
+  // start expanded and highlighted
+  btn.style.background = "var(--btn-text)";
+  btn.style.color = "var(--btn-bg)";
+});
+
 function applyTheme() {
   const theme = darkMode ? darkTheme : lightTheme;
   document.body.classList.toggle("dark", darkMode);
@@ -472,6 +895,19 @@ function applyTheme() {
   document.getElementById("settings-panel").style.borderColor = theme.border;
   document.getElementById("settings-panel").style.color = theme.text;
   document.getElementById("restore-confirm").style.background = darkMode ? "#4A1B0C" : "#FCEBEB";
+  const upsellCard = document.querySelector("#upsell-overlay > div");
+  if (upsellCard) {
+    upsellCard.style.background = theme.card;
+    upsellCard.style.color = theme.text;
+  }
+  const guideOverlay = document.getElementById("guide-overlay");
+  if (guideOverlay) {
+    guideOverlay.style.background = theme.card;
+    guideOverlay.style.color = theme.text;
+    guideOverlay.querySelectorAll("[style*='border-bottom: 0.5px solid #e3e1d9'], [style*='border-top: 0.5px solid #e3e1d9']").forEach(el => {
+      el.style.borderColor = theme.border;
+    });
+  }
   document.querySelectorAll("#settings-panel span, #settings-panel label").forEach(el => {
     if (el.id !== "font-val") return;
   });
@@ -525,6 +961,7 @@ function renderAll() {
     qr.innerHTML = '<span style="font-size:12px;color:' + theme.sub + ';">nothing checked out</span>';
   }
   document.getElementById("out-legend").style.display = out.length === 0 ? "none" : "inline-flex";
+  updateProUI();
 }
 
 function serializeTree(nodes) {
@@ -583,6 +1020,12 @@ function init() {
   } catch (err) {}
   applyTheme();
   renderAll();
+  if (MONETIZATION_ENABLED) checkProStatus(false);
+  updateProUI();
+  const maxEl = document.getElementById("free-tool-max");
+  if (maxEl) maxEl.textContent = String(MAX_FREE_TOOLS);
+  const upsellMaxEl = document.getElementById("upsell-max");
+  if (upsellMaxEl) upsellMaxEl.textContent = String(MAX_FREE_TOOLS);
 }
 
 init();
