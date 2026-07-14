@@ -89,11 +89,12 @@
     <div id="header" style="padding: calc(12px + env(safe-area-inset-top)) 14px 12px; border-bottom: 0.5px solid #e3e1d9; position: relative;">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
         <span id="title" style="font-size: 16px; font-weight: 600;">Mechanic's Tool Tracker</span>
-        <button id="guide-btn" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0; margin-right: 8px;">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5F5E5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button id="guide-btn" style="height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 0 12px; margin-right: 8px; font-size: 12px; font-weight: 600; white-space: nowrap;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#5F5E5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
           </svg>
+          Quick Guide
         </button>
         <button id="settings-btn" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5F5E5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -260,8 +261,8 @@
 
       <div class="guide-section" data-section="temperature">
         <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Temperature conversion formulas</div>
-        <div style="font-size: 12.5px; color: #3a3a37; margin-bottom: 4px;">°F to °C: (°F − 32) × 0.556 = °C</div>
-        <div style="font-size: 12.5px; color: #3a3a37; margin-bottom: 20px;">°C to °F: (°C × 1.8) + 32 = °F</div>
+        <div class="guide-text" style="font-size: 12.5px; color: #3a3a37; margin-bottom: 4px;">°F to °C: (°F − 32) × 0.556 = °C</div>
+        <div class="guide-text" style="font-size: 12.5px; color: #3a3a37; margin-bottom: 20px;">°C to °F: (°C × 1.8) + 32 = °F</div>
 
         <div style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">Temperature conversion quick reference</div>
         <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 12px;">
@@ -906,6 +907,9 @@ function applyTheme() {
     guideOverlay.style.color = theme.text;
     guideOverlay.querySelectorAll("[style*='border-bottom: 0.5px solid #e3e1d9'], [style*='border-top: 0.5px solid #e3e1d9']").forEach(el => {
       el.style.borderColor = theme.border;
+    });
+    guideOverlay.querySelectorAll(".guide-text").forEach(el => {
+      el.style.color = theme.text;
     });
   }
   document.querySelectorAll("#settings-panel span, #settings-panel label").forEach(el => {
