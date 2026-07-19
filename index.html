@@ -117,9 +117,9 @@
         <div style="margin-bottom: 12px;">
           <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
             <label for="font-slider" style="font-size: 12px; color: #5F5E5A;">Font size</label>
-            <span id="font-val" style="font-size: 12px; font-weight: 600;">13px</span>
+            <span id="font-val" style="font-size: 12px; font-weight: 600;">15px</span>
           </div>
-          <input id="font-slider" type="range" min="12" max="18" step="1" value="13" style="width: 100%; padding: 0;" />
+          <input id="font-slider" type="range" min="15" max="25" step="1" value="15" style="width: 100%; padding: 0;" />
         </div>
         <div style="display:flex; align-items:center; justify-content:space-between;">
           <span style="font-size: 12px; color: #5F5E5A;">Dark mode</span>
@@ -432,18 +432,19 @@
   </div>
 
   <div id="jobs-overlay" style="display:none; position: absolute; inset: 0; background: #ffffff; z-index: 25; flex-direction: column;">
-    <div style="padding: calc(12px + env(safe-area-inset-top)) 14px 12px; border-bottom: 0.5px solid #e3e1d9; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-      <span id="jobs-title" style="font-size: 16px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">Job Cards</span>
-      <div style="display: flex; align-items: center; flex-shrink: 0;">
-        <button id="jobs-back-btn" style="display:none; width: 32px; height: 32px; border-radius: 50%; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5F5E5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
-        </button>
-        <button id="jobs-close-btn" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5F5E5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
-        </button>
+    <div id="jobs-header" style="padding: calc(12px + env(safe-area-inset-top)) 14px 12px; border-bottom: 0.5px solid #e3e1d9; display: grid; grid-template-columns: 32px 1fr 32px; align-items: center; gap: 8px;">
+      <button id="jobs-back-btn" style="display:none; width: 32px; height: 32px; border-radius: 50%; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5F5E5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <div style="min-width: 0; text-align: center;">
+        <span id="jobs-title" style="font-size: 16px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; max-width: 100%;">Job Cards</span>
+        <input id="jobs-title-input" style="display: none; font-size: 16px; font-weight: 700; width: 100%; padding: 2px 6px; text-align: center;" />
       </div>
+      <button id="jobs-close-btn" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5F5E5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
     </div>
-    <div id="jobs-content" style="flex: 1; overflow-y: auto; padding: 14px 16px calc(24px + env(safe-area-inset-bottom));"></div>
+    <div id="jobs-content" style="flex: 1; overflow-y: auto; padding: 14px 16px calc(24px + env(safe-area-inset-bottom)); display: flex; flex-direction: column;"></div>
   </div>
 </div>
 
@@ -473,7 +474,7 @@ let renameId = null;
 let addFormId = null;
 let deleteConfirmId = null;
 let reorderId = null;
-let fontSize = 13;
+let fontSize = 15;
 let darkMode = false;
 let searchQuery = "";
 let jobs = [];
@@ -482,9 +483,10 @@ const jid = () => "job" + (jobUid++);
 let currentJobView = "list"; // 'list' | 'detail' | 'picker'
 let currentJobId = null;
 let pickerSelection = new Set();
+let pickerSearchQuery = "";
 let jobFormOpen = false;
 let jobDeleteConfirmId = null;
-let jobEditOpen = false;
+let jobEditField = null; // null | 'name' | 'description'
 const MONETIZATION_ENABLED = false; // flip to true when ready to re-enable the paywall
 const PRO_PRODUCT_ID = "pro_unlock";
 const MAX_FREE_TOOLS = 75;
@@ -951,11 +953,19 @@ document.getElementById("jobs-back-btn").onclick = () => {
 
 function renderJobsOverlay() {
   const theme = darkMode ? darkTheme : lightTheme;
+  const headerEl = document.getElementById("jobs-header");
   const backBtn = document.getElementById("jobs-back-btn");
   const closeBtn = document.getElementById("jobs-close-btn");
   const titleEl = document.getElementById("jobs-title");
+  const titleInput = document.getElementById("jobs-title-input");
   backBtn.style.display = currentJobView === "list" ? "none" : "flex";
   closeBtn.style.display = currentJobView === "list" ? "flex" : "none";
+  titleEl.style.cursor = "default";
+  titleEl.onclick = null;
+  titleEl.style.display = "block";
+  titleInput.style.display = "none";
+  headerEl.onclick = null;
+  headerEl.style.cursor = "default";
 
   if (currentJobView === "list") {
     titleEl.textContent = "Job Cards";
@@ -963,9 +973,34 @@ function renderJobsOverlay() {
   } else if (currentJobView === "detail") {
     const job = jobs.find(j => j.id === currentJobId);
     titleEl.textContent = job ? job.name : "Job";
+    if (job && jobEditField === "name") {
+      titleEl.style.display = "none";
+      titleInput.style.display = "block";
+      titleInput.value = job.name;
+      const commit = () => {
+        job.name = titleInput.value.trim() || job.name;
+        jobEditField = null;
+        scheduleSave();
+        renderJobsOverlay();
+      };
+      titleInput.onkeydown = (e) => {
+        if (e.key === "Enter") { commit(); }
+        if (e.key === "Escape") { jobEditField = null; renderJobsOverlay(); }
+      };
+      setTimeout(() => { titleInput.focus(); titleInput.select(); }, 0);
+    } else if (job) {
+      titleEl.style.cursor = "pointer";
+      titleEl.onclick = () => { jobEditField = "name"; renderJobsOverlay(); };
+      headerEl.style.cursor = "pointer";
+      headerEl.onclick = (e) => {
+        if (e.target.closest("#jobs-back-btn")) return;
+        jobEditField = "name";
+        renderJobsOverlay();
+      };
+    }
     renderJobDetail();
   } else if (currentJobView === "picker") {
-    titleEl.textContent = "Select tools";
+    titleEl.textContent = "Select Tools";
     renderToolPicker();
   }
 }
@@ -1015,7 +1050,7 @@ function renderJobsList() {
       scheduleSave();
       currentJobId = newJob.id;
       currentJobView = "detail";
-      jobEditOpen = false;
+      jobEditField = null;
       renderJobsOverlay();
     });
     const cancelBtn = mkJobBtn("cancel", null, () => { jobFormOpen = false; renderJobsList(); });
@@ -1052,7 +1087,7 @@ function renderJobsList() {
     countRow.style.cssText = "font-size: 11px; color: " + theme.sub + ";";
     countRow.textContent = job.toolIds.length + " tool" + (job.toolIds.length === 1 ? "" : "s") + " assigned";
     card.appendChild(countRow);
-    card.onclick = () => { currentJobId = job.id; currentJobView = "detail"; jobEditOpen = false; renderJobsOverlay(); };
+    card.onclick = () => { currentJobId = job.id; currentJobView = "detail"; jobEditField = null; renderJobsOverlay(); };
     content.appendChild(card);
   });
 }
@@ -1064,48 +1099,51 @@ function renderJobDetail() {
   const job = jobs.find(j => j.id === currentJobId);
   if (!job) { currentJobView = "list"; renderJobsOverlay(); return; }
 
-  if (jobEditOpen) {
-    const nameInput = document.createElement("input");
-    nameInput.value = job.name;
-    nameInput.style.cssText = "width: 100%; margin-bottom: 8px; font-size: 15px; font-weight: 700;";
-    content.appendChild(nameInput);
+  if (jobEditField === "name") {
+    const titleInputEl = document.getElementById("jobs-title-input");
+    const nameBtnRow = document.createElement("div");
+    nameBtnRow.style.cssText = "display: flex; gap: 8px; margin-bottom: 14px;";
+    const saveNameBtn = mkJobBtn("save", null, () => {
+      job.name = titleInputEl.value.trim() || job.name;
+      jobEditField = null;
+      scheduleSave();
+      renderJobsOverlay();
+    });
+    const cancelNameBtn = mkJobBtn("cancel", null, () => { jobEditField = null; renderJobsOverlay(); });
+    nameBtnRow.appendChild(saveNameBtn);
+    nameBtnRow.appendChild(cancelNameBtn);
+    content.appendChild(nameBtnRow);
+  }
 
+  if (jobEditField === "description") {
     const descInput = document.createElement("textarea");
     descInput.value = job.description || "";
     descInput.placeholder = "Description (optional)";
     descInput.rows = 3;
-    descInput.style.cssText = "width: 100%; margin-bottom: 10px; font-size: 13px; font-family: inherit; border-radius: 8px; border: 0.5px solid #B4B2A9; padding: 6px 8px; resize: vertical;";
+    descInput.style.cssText = "width: 100%; margin-bottom: 10px; font-size: 13px; font-family: inherit; border-radius: 8px; border: 0.5px solid #B4B2A9; padding: 6px 8px; resize: vertical; overflow: hidden; min-height: 66px;";
     content.appendChild(descInput);
+    const autoSize = () => { descInput.style.height = "auto"; descInput.style.height = descInput.scrollHeight + "px"; };
+    descInput.oninput = autoSize;
+    setTimeout(autoSize, 0);
 
     const editBtnRow = document.createElement("div");
     editBtnRow.style.cssText = "display: flex; gap: 8px; margin-bottom: 14px;";
     const saveBtn = mkJobBtn("save", null, () => {
-      job.name = nameInput.value.trim() || job.name;
       job.description = descInput.value.trim();
-      jobEditOpen = false;
+      jobEditField = null;
       scheduleSave();
       renderJobsOverlay();
     });
-    const cancelEditBtn = mkJobBtn("cancel", null, () => { jobEditOpen = false; renderJobsOverlay(); });
+    const cancelEditBtn = mkJobBtn("cancel", null, () => { jobEditField = null; renderJobsOverlay(); });
     editBtnRow.appendChild(saveBtn);
     editBtnRow.appendChild(cancelEditBtn);
     content.appendChild(editBtnRow);
-    setTimeout(() => { nameInput.focus(); nameInput.select(); }, 0);
+    setTimeout(() => { descInput.focus(); }, 0);
   } else {
-    const viewRow = document.createElement("div");
-    viewRow.style.cssText = "display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px;";
-    const nameDisplay = document.createElement("div");
-    nameDisplay.style.cssText = "font-size: 16px; font-weight: 700; color: " + theme.text + "; min-width: 0; overflow-wrap: break-word;";
-    nameDisplay.textContent = job.name;
-    const editBtn = mkJobBtn("edit", "ti-edit", () => { jobEditOpen = true; renderJobsOverlay(); });
-    editBtn.style.flexShrink = "0";
-    viewRow.appendChild(nameDisplay);
-    viewRow.appendChild(editBtn);
-    content.appendChild(viewRow);
-
     const descDisplay = document.createElement("div");
-    descDisplay.style.cssText = "font-size: 13px; color: " + (job.description ? theme.sub : theme.sub) + "; margin-bottom: 14px; white-space: pre-wrap; overflow-wrap: break-word;" + (job.description ? "" : " font-style: italic;");
+    descDisplay.style.cssText = "font-size: 13px; color: " + theme.sub + "; white-space: pre-wrap; overflow-wrap: break-word; margin-bottom: 14px; cursor: pointer;" + (job.description ? "" : " font-style: italic;");
     descDisplay.textContent = job.description || "No description";
+    descDisplay.onclick = () => { jobEditField = "description"; renderJobsOverlay(); };
     content.appendChild(descDisplay);
   }
 
@@ -1116,38 +1154,12 @@ function renderJobDetail() {
   toolsLabel.textContent = "Tools (" + job.toolIds.length + ")";
   const addToolsBtn = mkJobBtn("add tools", "ti-plus", () => {
     pickerSelection = new Set(job.toolIds);
+    pickerSearchQuery = "";
     currentJobView = "picker";
     renderJobsOverlay();
   });
   toolsHeader.appendChild(toolsLabel);
-  toolsHeader.appendChild(addToolsBtn);
   content.appendChild(toolsHeader);
-
-  if (job.toolIds.length > 0) {
-    const quickRow = document.createElement("div");
-    quickRow.style.cssText = "display: flex; gap: 8px; margin-bottom: 14px;";
-    const checkOutBtn = document.createElement("button");
-    checkOutBtn.textContent = "Check out all tools";
-    checkOutBtn.style.cssText = "flex: 1; padding: 7px; font-size: 12.5px; font-weight: 700; border: 0.5px solid #E24B4A; background: " + (darkMode ? "#4A1B0C" : "#FCEBEB") + "; color: #A32D2D;";
-    checkOutBtn.onclick = () => {
-      job.toolIds.forEach(id => { const t = findToolById(data, id); if (t) t.status = "out"; });
-      renderAll();
-      scheduleSave();
-      renderJobsOverlay();
-    };
-    const checkInBtn = document.createElement("button");
-    checkInBtn.textContent = "Check in all tools";
-    checkInBtn.style.cssText = "flex: 1; padding: 7px; font-size: 12.5px; font-weight: 700; border: 0.5px solid #639922; background: " + (darkMode ? "#173404" : "#EAF3DE") + "; color: #3B6D11;";
-    checkInBtn.onclick = () => {
-      job.toolIds.forEach(id => { const t = findToolById(data, id); if (t) t.status = "in"; });
-      renderAll();
-      scheduleSave();
-      renderJobsOverlay();
-    };
-    quickRow.appendChild(checkOutBtn);
-    quickRow.appendChild(checkInBtn);
-    content.appendChild(quickRow);
-  }
 
   if (job.toolIds.length === 0) {
     const empty = document.createElement("div");
@@ -1186,13 +1198,41 @@ function renderJobDetail() {
   }
 
   const deleteSection = document.createElement("div");
-  deleteSection.style.cssText = "margin-top: 24px; border-top: 0.5px solid " + theme.border + "; padding-top: 14px;";
+  deleteSection.style.cssText = "margin-top: auto; padding-top: 14px; border-top: 0.5px solid " + theme.border + ";";
+  if (job.toolIds.length > 0) {
+    const quickRow = document.createElement("div");
+    quickRow.style.cssText = "display: flex; gap: 8px; margin-bottom: 14px;";
+    const checkOutBtn = document.createElement("button");
+    checkOutBtn.textContent = "Check out all tools";
+    checkOutBtn.style.cssText = "flex: 1; padding: 7px; font-size: 12.5px; font-weight: 700; border: 0.5px solid #E24B4A; background: " + (darkMode ? "#4A1B0C" : "#FCEBEB") + "; color: #A32D2D;";
+    checkOutBtn.onclick = () => {
+      job.toolIds.forEach(id => { const t = findToolById(data, id); if (t) t.status = "out"; });
+      renderAll();
+      scheduleSave();
+      renderJobsOverlay();
+    };
+    const checkInBtn = document.createElement("button");
+    checkInBtn.textContent = "Check in all tools";
+    checkInBtn.style.cssText = "flex: 1; padding: 7px; font-size: 12.5px; font-weight: 700; border: 0.5px solid #639922; background: " + (darkMode ? "#173404" : "#EAF3DE") + "; color: #3B6D11;";
+    checkInBtn.onclick = () => {
+      job.toolIds.forEach(id => { const t = findToolById(data, id); if (t) t.status = "in"; });
+      renderAll();
+      scheduleSave();
+      renderJobsOverlay();
+    };
+    quickRow.appendChild(checkOutBtn);
+    quickRow.appendChild(checkInBtn);
+    deleteSection.appendChild(quickRow);
+  }
+
+  const deleteRow = document.createElement("div");
+  deleteRow.style.cssText = "display: flex; align-items: center; justify-content: space-between; gap: 8px;";
   if (jobDeleteConfirmId === job.id) {
     const box = document.createElement("div");
-    box.style.cssText = "padding: 8px 10px; border-radius: 8px; background: " + (darkMode ? "#4A1B0C" : "#FCEBEB") + ";";
+    box.style.cssText = "padding: 8px 10px; border-radius: 8px; background: " + (darkMode ? "#4A1B0C" : "#FCEBEB") + "; width: 100%;";
     box.innerHTML = '<div style="font-size:12px;color:#A32D2D;margin-bottom:6px;">delete "' + job.name + '"? this cannot be undone.</div>';
     const btnRow = document.createElement("div");
-    btnRow.style.cssText = "display:flex;gap:6px;";
+    btnRow.style.cssText = "display:flex;gap:6px;justify-content:flex-end;";
     btnRow.appendChild(mkJobBtn("delete", null, () => {
       jobs = jobs.filter(j => j.id !== job.id);
       jobDeleteConfirmId = null;
@@ -1203,26 +1243,46 @@ function renderJobDetail() {
     }, "danger"));
     btnRow.appendChild(mkJobBtn("cancel", null, () => { jobDeleteConfirmId = null; renderJobsOverlay(); }));
     box.appendChild(btnRow);
-    deleteSection.appendChild(box);
+    deleteRow.appendChild(box);
   } else {
-    deleteSection.appendChild(mkJobBtn("delete job", "ti-trash", () => { jobDeleteConfirmId = job.id; renderJobsOverlay(); }, "danger"));
+    deleteRow.appendChild(mkJobBtn("delete job", "ti-trash", () => { jobDeleteConfirmId = job.id; renderJobsOverlay(); }, "danger"));
+    deleteRow.appendChild(addToolsBtn);
   }
+  deleteSection.appendChild(deleteRow);
   content.appendChild(deleteSection);
 }
 
-function renderPickerNode(node, depth, container) {
+function renderPickerNode(node, container, query, isTopLevel, isLast) {
+  if (query && !subtreeMatches(node, query)) return;
   const theme = darkMode ? darkTheme : lightTheme;
   const wrap = document.createElement("div");
-  wrap.style.marginLeft = (depth * 12) + "px";
+
+  const headerRow = document.createElement("div");
+  headerRow.style.cssText = "display: flex;";
+
+  if (!isTopLevel) {
+    const gutter = document.createElement("div");
+    gutter.style.cssText = "width: 12px; flex-shrink: 0; display: flex; flex-direction: column;";
+    const topHalf = document.createElement("div");
+    topHalf.style.cssText = "flex: 1; position: relative; border-left: 1.5px solid " + theme.sub + ";";
+    const elbow = document.createElement("div");
+    elbow.style.cssText = "position: absolute; left: 0; bottom: 0; width: 12px; border-top: 1.5px solid " + theme.sub + ";";
+    topHalf.appendChild(elbow);
+    const bottomHalf = document.createElement("div");
+    bottomHalf.style.cssText = "flex: 1;" + (isLast ? "" : " border-left: 1.5px solid " + theme.sub + ";");
+    gutter.appendChild(topHalf);
+    gutter.appendChild(bottomHalf);
+    headerRow.appendChild(gutter);
+  }
+
+  const contentCol = document.createElement("div");
+  contentCol.style.cssText = "flex: 1; min-width: 0;";
 
   if (node.children) {
     const label = document.createElement("div");
     label.style.cssText = "font-size: 13px; font-weight: 600; padding: 6px 0; color: " + theme.text + ";";
     label.textContent = node.name;
-    wrap.appendChild(label);
-    const childBox = document.createElement("div");
-    node.children.forEach(c => renderPickerNode(c, depth + 1, childBox));
-    wrap.appendChild(childBox);
+    contentCol.appendChild(label);
   } else {
     const row = document.createElement("label");
     row.style.cssText = "display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 13px; color: " + theme.text + "; cursor: pointer;";
@@ -1238,9 +1298,35 @@ function renderPickerNode(node, depth, container) {
     span.textContent = node.name;
     row.appendChild(checkbox);
     row.appendChild(span);
-    wrap.appendChild(row);
+    contentCol.appendChild(row);
+  }
+  headerRow.appendChild(contentCol);
+  wrap.appendChild(headerRow);
+
+  if (node.children) {
+    const childBox = document.createElement("div");
+    childBox.style.cssText = "margin-left: 12px;";
+    const visibleChildren = query ? node.children.filter(c => subtreeMatches(c, query)) : node.children;
+    visibleChildren.forEach((c, idx) => renderPickerNode(c, childBox, query, false, idx === visibleChildren.length - 1));
+    wrap.appendChild(childBox);
   }
   container.appendChild(wrap);
+}
+
+function renderPickerTree() {
+  const theme = darkMode ? darkTheme : lightTheme;
+  const treeBox = document.getElementById("picker-tree-box");
+  if (!treeBox) return;
+  treeBox.innerHTML = "";
+  const query = pickerSearchQuery;
+  const matchingCats = query ? data.filter(cat => subtreeMatches(cat, query)) : data;
+  matchingCats.forEach(cat => renderPickerNode(cat, treeBox, query, true, false));
+  if (query && matchingCats.length === 0) {
+    const empty = document.createElement("div");
+    empty.style.cssText = "font-size: 13px; color: " + theme.sub + ";";
+    empty.textContent = 'No tools match "' + query + '"';
+    treeBox.appendChild(empty);
+  }
 }
 
 function renderToolPicker() {
@@ -1248,15 +1334,30 @@ function renderToolPicker() {
   const content = document.getElementById("jobs-content");
   content.innerHTML = "";
 
+  const searchWrap = document.createElement("div");
+  searchWrap.style.cssText = "position: relative; margin-bottom: 12px;";
+  const searchInput = document.createElement("input");
+  searchInput.id = "picker-search-input";
+  searchInput.placeholder = "search tools";
+  searchInput.value = pickerSearchQuery;
+  searchInput.style.cssText = "width: 100%; padding: 6px 10px; font-size: 13px;";
+  searchInput.oninput = (e) => {
+    pickerSearchQuery = e.target.value.trim().toLowerCase();
+    renderPickerTree();
+  };
+  searchWrap.appendChild(searchInput);
+  content.appendChild(searchWrap);
+
   const hint = document.createElement("div");
   hint.style.cssText = "font-size: 12px; color: " + theme.sub + "; margin-bottom: 12px;";
   hint.textContent = "Check the tools to assign to this job.";
   content.appendChild(hint);
 
   const treeBox = document.createElement("div");
+  treeBox.id = "picker-tree-box";
   treeBox.style.cssText = "margin-bottom: 16px;";
-  data.forEach(cat => renderPickerNode(cat, 0, treeBox));
   content.appendChild(treeBox);
+  renderPickerTree();
 
   const btnRow = document.createElement("div");
   btnRow.style.cssText = "display: flex; gap: 8px; position: sticky; bottom: 0; background: " + theme.card + "; padding-top: 10px;";
@@ -1423,7 +1524,8 @@ function init() {
     const settingsRaw = localStorage.getItem("tool-settings");
     if (settingsRaw) {
       const s = JSON.parse(settingsRaw);
-      fontSize = s.fontSize || 13;
+      fontSize = s.fontSize || 15;
+      fontSize = Math.min(25, Math.max(15, fontSize));
       darkMode = !!s.darkMode;
       document.getElementById("font-slider").value = fontSize;
       document.getElementById("font-val").textContent = fontSize + "px";
@@ -1450,6 +1552,16 @@ function init() {
   if (maxEl) maxEl.textContent = String(MAX_FREE_TOOLS);
   const upsellMaxEl = document.getElementById("upsell-max");
   if (upsellMaxEl) upsellMaxEl.textContent = String(MAX_FREE_TOOLS);
+}
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", () => {
+    const el = document.activeElement;
+    if (el && el.tagName === "TEXTAREA") {
+      el.style.height = "auto";
+      el.style.height = el.scrollHeight + "px";
+    }
+  });
 }
 
 init();
