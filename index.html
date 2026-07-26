@@ -433,14 +433,14 @@
 
   <div id="jobs-overlay" style="display:none; position: absolute; inset: 0; background: #ffffff; z-index: 25; flex-direction: column;">
     <div id="jobs-header" style="padding: calc(12px + env(safe-area-inset-top)) 14px 12px; border-bottom: 0.5px solid #e3e1d9; display: grid; grid-template-columns: 32px 1fr 32px; align-items: center; gap: 8px;">
-      <button id="jobs-back-btn" style="display:none; width: 32px; height: 32px; border-radius: 50%; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">
+      <button id="jobs-back-btn" style="display:none; grid-column: 3; width: 32px; height: 32px; border-radius: 50%; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5F5E5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
       </button>
-      <div style="min-width: 0; text-align: center;">
+      <div style="grid-column: 2; min-width: 0; text-align: center;">
         <span id="jobs-title" style="font-size: 16px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; max-width: 100%;">Job Cards</span>
         <input id="jobs-title-input" style="display: none; font-size: 16px; font-weight: 700; width: 100%; padding: 2px 6px; text-align: center;" />
       </div>
-      <button id="jobs-close-btn" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">
+      <button id="jobs-close-btn" style="grid-column: 3; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5F5E5A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
       </button>
     </div>
