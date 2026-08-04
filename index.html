@@ -139,7 +139,7 @@
         <div style="border-top: 0.5px solid #e3e1d9; margin-top: 10px; padding-top: 10px;">
           <button id="restore-defaults-btn" style="font-size: 11px; padding: 4px 10px; width: 100%;">Restore defaults</button>
           <div id="restore-confirm" style="display:none; margin-top: 8px; padding: 8px; border-radius: 8px; background: #FCEBEB;">
-            <div style="font-size: 11px; color: #A32D2D; margin-bottom: 6px;">erase all saved categories and restore the defaults?</div>
+            <div style="font-size: 11px; color: #A32D2D; margin-bottom: 6px;">erase all saved categories and job cards, and restore the defaults?</div>
             <div style="display:flex; gap: 6px;">
               <button id="restore-confirm-yes" style="font-size: 11px; padding: 3px 8px; color:#A32D2D; border-color:#E24B4A;">restore</button>
               <button id="restore-confirm-no" style="font-size: 11px; padding: 3px 8px;">cancel</button>
@@ -576,7 +576,9 @@ function renderNode(node, depth, query) {
     left.onclick = () => { node._open = node._open === false ? true : !node._open; renderAll(); scheduleSave(); };
   } else {
     const isSearchHit = query && node.name.toLowerCase().includes(query);
+    left.style.cursor = "pointer";
     left.innerHTML = '<span style="font-size:' + fontSize + 'px;color:' + theme.text + ';' + (isSearchHit ? "font-weight:600;" : "") + 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + node.name + "</span>";
+    left.onclick = () => { setToolStatus(node, node.status === "in" ? "out" : "in"); renderAll(); scheduleSave(); };
   }
 
   const right = document.createElement("div");
@@ -586,8 +588,7 @@ function renderNode(node, depth, query) {
     const isOut = node.status === "out";
     const badge = document.createElement("button");
     badge.textContent = node.status;
-    badge.style.cssText = "font-size:" + Math.max(fontSize-2,10) + "px;padding:2px 10px;font-weight:600;border:0.5px solid " + (isOut ? "#E24B4A" : "#639922") + ";background:" + (isOut ? (darkMode ? "#4A1B0C" : "#FCEBEB") : (darkMode ? "#173404" : "#EAF3DE")) + ";color:" + (isOut ? "#A32D2D" : "#3B6D11") + ";";
-    badge.onclick = (e) => { e.stopPropagation(); setToolStatus(node, node.status === "in" ? "out" : "in"); renderAll(); scheduleSave(); };
+    badge.style.cssText = "font-size:" + Math.max(fontSize-2,10) + "px;padding:2px 10px;font-weight:600;border:0.5px solid " + (isOut ? "#E24B4A" : "#639922") + ";background:" + (isOut ? (darkMode ? "#4A1B0C" : "#FCEBEB") : (darkMode ? "#173404" : "#EAF3DE")) + ";color:" + (isOut ? "#A32D2D" : "#3B6D11") + ";cursor:default;";
     right.appendChild(badge);
   }
 
@@ -809,6 +810,7 @@ document.getElementById("restore-confirm-yes").onclick = () => {
   try {
     localStorage.removeItem("tool-tree");
     localStorage.removeItem("tool-settings");
+    localStorage.removeItem("tool-jobs");
   } catch (err) {}
   location.reload();
 };
@@ -1235,9 +1237,17 @@ function renderJobDetail() {
         left.innerHTML = '<div style="font-size:13px;color:' + theme.text + ';display:flex;align-items:center;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:' + dotColor + ';margin-right:7px;flex-shrink:0;"></span>' + tool.name + '</div>' +
           (ancestors ? '<div style="font-size:11px;color:' + theme.sub + ';margin-left:14px;">' + ancestors + '</div>' : '') +
           (isOut && tool.checkedOutAt ? '<div style="font-size:11px;color:#A32D2D;margin-left:14px;">checked out ' + formatCheckedOutTime(tool.checkedOutAt) + '</div>' : '');
+        left.style.cursor = "pointer";
+        left.onclick = () => {
+          setToolStatus(tool, tool.status === "in" ? "out" : "in");
+          scheduleSave();
+          renderJobsOverlay();
+        };
       } else {
         left.innerHTML = '<div style="font-size:13px;color:' + theme.sub + ';font-style:italic;">Tool no longer exists</div>';
       }
+      const rightWrap = document.createElement("div");
+      rightWrap.style.cssText = "display: flex; align-items: center; gap: 6px; flex-shrink: 0;";
       const removeBtn = document.createElement("button");
       removeBtn.innerHTML = iconBtn("ti-x");
       removeBtn.style.cssText = "padding: 2px 6px; flex-shrink: 0;";
@@ -1245,8 +1255,9 @@ function renderJobDetail() {
         toolRemoveConfirmId = toolId;
         renderJobsOverlay();
       };
+      rightWrap.appendChild(removeBtn);
       row.appendChild(left);
-      row.appendChild(removeBtn);
+      row.appendChild(rightWrap);
       content.appendChild(row);
     });
   }
@@ -1309,16 +1320,15 @@ function renderJobDetail() {
 function renderPickerNode(node, container, query, isTopLevel, isLast) {
   if (query && !subtreeMatches(node, query)) return;
   const theme = darkMode ? darkTheme : lightTheme;
-  const wrap = document.createElement("div");
 
-  const headerRow = document.createElement("div");
-  headerRow.style.cssText = "display: flex;";
+  const row = document.createElement("div");
+  row.style.cssText = "display: flex;";
 
   if (!isTopLevel) {
     const gutter = document.createElement("div");
     gutter.style.cssText = "width: 12px; flex-shrink: 0; display: flex; flex-direction: column;";
     const topHalf = document.createElement("div");
-    topHalf.style.cssText = "flex: 1; position: relative; border-left: 1.5px solid " + theme.sub + ";";
+    topHalf.style.cssText = "height: 13px; flex-shrink: 0; position: relative; border-left: 1.5px solid " + theme.sub + ";";
     const elbow = document.createElement("div");
     elbow.style.cssText = "position: absolute; left: 0; bottom: 0; width: 12px; border-top: 1.5px solid " + theme.sub + ";";
     topHalf.appendChild(elbow);
@@ -1326,11 +1336,11 @@ function renderPickerNode(node, container, query, isTopLevel, isLast) {
     bottomHalf.style.cssText = "flex: 1;" + (isLast ? "" : " border-left: 1.5px solid " + theme.sub + ";");
     gutter.appendChild(topHalf);
     gutter.appendChild(bottomHalf);
-    headerRow.appendChild(gutter);
+    row.appendChild(gutter);
   }
 
   const contentCol = document.createElement("div");
-  contentCol.style.cssText = "flex: 1; min-width: 0;";
+  contentCol.style.cssText = "flex: 1; min-width: 0; padding-left: 1ch;";
 
   if (node.children) {
     const label = document.createElement("div");
@@ -1338,8 +1348,8 @@ function renderPickerNode(node, container, query, isTopLevel, isLast) {
     label.textContent = node.name;
     contentCol.appendChild(label);
   } else {
-    const row = document.createElement("label");
-    row.style.cssText = "display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 13px; color: " + theme.text + "; cursor: pointer;";
+    const leafRow = document.createElement("label");
+    leafRow.style.cssText = "display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 13px; color: " + theme.text + "; cursor: pointer;";
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.checked = pickerSelection.has(node.id);
@@ -1350,21 +1360,21 @@ function renderPickerNode(node, container, query, isTopLevel, isLast) {
     };
     const span = document.createElement("span");
     span.textContent = node.name;
-    row.appendChild(checkbox);
-    row.appendChild(span);
-    contentCol.appendChild(row);
+    leafRow.appendChild(checkbox);
+    leafRow.appendChild(span);
+    contentCol.appendChild(leafRow);
   }
-  headerRow.appendChild(contentCol);
-  wrap.appendChild(headerRow);
 
   if (node.children) {
     const childBox = document.createElement("div");
     childBox.style.cssText = "margin-left: 12px;";
     const visibleChildren = query ? node.children.filter(c => subtreeMatches(c, query)) : node.children;
     visibleChildren.forEach((c, idx) => renderPickerNode(c, childBox, query, false, idx === visibleChildren.length - 1));
-    wrap.appendChild(childBox);
+    contentCol.appendChild(childBox);
   }
-  container.appendChild(wrap);
+
+  row.appendChild(contentCol);
+  container.appendChild(row);
 }
 
 function renderPickerTree() {
@@ -1580,7 +1590,8 @@ function renderAll() {
     row.style.cssText = "display:flex;flex-direction:column;font-size:" + Math.max(fontSize-1,11) + "px;color:#A32D2D;cursor:pointer;padding:4px 4px;border-radius:6px;";
     row.innerHTML =
       '<div style="display:flex;align-items:center;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#E24B4A;margin-right:8px;flex-shrink:0;"></span>' + t.name + '</div>' +
-      (ancestors ? '<div style="font-size:' + Math.max(fontSize-3,9) + 'px;color:' + theme.sub + ';margin-left:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + ancestors + '</div>' : '');
+      (ancestors ? '<div style="font-size:' + Math.max(fontSize-3,9) + 'px;color:' + theme.sub + ';margin-left:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + ancestors + '</div>' : '') +
+      (t.checkedOutAt ? '<div style="font-size:' + Math.max(fontSize-3,9) + 'px;color:#A32D2D;margin-left:15px;">checked out ' + formatCheckedOutTime(t.checkedOutAt) + '</div>' : '');
     row.onclick = () => locateTool(t.id);
     qr.appendChild(row);
   });
